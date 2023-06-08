@@ -15,7 +15,7 @@ services:
       - TERM=xterm
     volumes:
       - ./sync/calibre:/book
-      - calibre-web-conf:/config
+      - /portainer/Files/AppData/Config/calibreweb:/config
     restart: unless-stopped
     networks:
       - nginx_network

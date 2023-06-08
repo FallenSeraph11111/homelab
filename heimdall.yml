@@ -1,0 +1,19 @@
+version: "2.1"
+services:
+  heimdall:
+    image: lscr.io/linuxserver/heimdall:latest
+    container_name: heimdall
+    hostname: heimdall #optional
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    volumes:
+      - /portainer/Files/AppData/Config/Heimdall:/config
+#    ports:
+#      - 7203:443/tcp
+#      - 7202:80/tcp
+networks:
+  default:
+    name: nginx_network
+    external: true

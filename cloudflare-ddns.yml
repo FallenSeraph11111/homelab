@@ -1,0 +1,9 @@
+version: '3.3'
+services:
+  cloudflare-ddns:
+    environment:
+      - API_KEY=-ZJ4J_uC_CRs2hHCmRyOf6qJKnzq1F9K7CVYS04F
+      - ZONE=fallenlab.com
+      - SUBDOMAIN=ddns
+      - DELETE_ON_STOP=true
+    image: oznu/cloudflare-ddns

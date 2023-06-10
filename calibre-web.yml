@@ -14,7 +14,7 @@ services:
       - OAUTHLIB_RELAX_TOKEN_SCOPE=1
       - TERM=xterm
     volumes:
-      - ./sync/calibre:/book
+      - /sync/calibre:/book
       - /portainer/Files/AppData/Config/calibreweb:/config
     restart: unless-stopped
     networks:

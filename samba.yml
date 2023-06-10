@@ -2,28 +2,28 @@ version: "3.7"
 services:
   samba:
     image: dperson/samba:latest
-    container_name: calibre-web
+    container_name: samba
     environment:
       - PUID=1000
       - PGID=1000
       - USERID=1000
       - GROUPID=1000
-      - USER=svollmer;rT7VNUvMQ9Z4oAazrzLo
-      - SHARE=sync;/share;yes;no;yes;svollmer
-      - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       - PERMISSIONS=true
+      - TZ:Europe/Berlin
+    stdin_open: true
+    tty: true
+    tmpfs:
+      - /tmp
     volumes:
-      - ./sync:/share
-      - 0d1876664934b82bb518bab1e9681a754ffa45e3ccb6192e00106e773b3c73ef:/var/cache/samba
-      - 6f2c4dfbd71c3debb129442e72ba58c59aa273cde0c77afb491ec477d763702e:/var/lib/samba
-      - f17c8406da86bcf76595d969a05a4595e08dd12fcafb1113a9457cd7bf04ebcc:/var/log/samba
-      - 6fecb1771ef160cb4fd9d54b6e59f33c1e53e9098ff2477fd47061022238b04e:/etc
-
+      - /sync:/share
+    ports:
+      - "137:137/udp"
+      - "138:138/udp"
+      - "139:139/tcp"
+      - "445:445/tcp"
     restart: unless-stopped
     networks:
-      - nginx_network
-    entrypoint: /sbin/tini,--,/usr/bin/samba.sh
+      - default
+    command: '-s "sync;/share;yes;no;yes;svollmer" -u "svollmer;rT7VNUvMQ9Z4oAazrzLo" -p'
 networks:
-  nginx_network:
-    name: nginx_network
-    external: true
+  default:

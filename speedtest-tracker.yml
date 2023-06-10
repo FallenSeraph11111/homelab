@@ -8,6 +8,7 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=Etc/UTC
+      - OOKLA_EULA_GDPR=true
     volumes:
       - /portainer/Files/AppData/Config/speedtest-tracker:/config
 #    ports:

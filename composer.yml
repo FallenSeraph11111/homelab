@@ -1,0 +1,204 @@
+version: "3.7"
+services:
+
+  speedtest-tracker:
+    image: henrywhitaker3/speedtest-tracker:dev-arm
+    container_name: speedtest-tracker
+    hostname: speedtest-tracker #optional
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      - OOKLA_EULA_GDPR=true
+    volumes:
+      - /portainer/Files/AppData/Config/speedtest-tracker:/config
+
+  syncthing:
+    image: lscr.io/linuxserver/syncthing:latest
+    container_name: syncthing
+    hostname: syncthing #optional
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    volumes:
+      - /portainer/Files/AppData/Config:/config
+      - /sync:/var/syncthing
+    #ports:
+      #- 22000:22000/tcp
+      #- 22000:22000/udp
+      #- 21027:21027/udp
+
+  home-assistant:
+    container_name: homeassistant
+    privileged: true
+    restart: unless-stopped
+    environment:
+      - TZ=Europe/Berlin
+    volumes:
+      - /portainer/Files/AppData/Config/homeassistant:/config
+    network_mode: host
+    image: 'ghcr.io/home-assistant/home-assistant:stable'
+
+  pihole:
+    container_name: pihole
+    image: cbcrowe/pihole-unbound:latest
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      #- "67:67/udp" # Only required if you are using Pi-hole as your DHCP server
+    environment:
+      TZ: 'Europe/Berlin'
+    volumes:
+      - /portainer/Files/AppData/Config/PiHole-Unbound/DNS:/etc/dnsmasq.d'
+      - /portainer/Files/AppData/Config/PiHole-Unbound:/etc/pihole
+    cap_add:
+      - NET_ADMIN # Required if you are using Pi-hole as your DHCP server, else not needed
+    restart: unless-stopped
+
+  calibre-web:
+    image: ghcr.io/linuxserver/calibre-web
+    container_name: calibre-web
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Berlin
+      - DOCKER_MODS=linuxserver/calibre-web:calibre
+      - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      - HOME=/root
+      - S6_STAGE2_HOOK=/docker-mods
+      - OAUTHLIB_RELAX_TOKEN_SCOPE=1
+      - TERM=xterm
+    volumes:
+      - /sync/calibre:/book
+      - /portainer/Files/AppData/Config/calibreweb:/config
+    restart: unless-stopped
+    networks:
+      - nginx_network
+
+  portainer:
+    container_name: portainer
+    image: portainer/portainer-ce:latest
+    restart: unless-stopped
+    networks:
+      nginx_network:
+    # ports:
+    #   - "9000:9000"
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - portainer_data:/data
+
+  samba:
+    image: dperson/samba:latest
+    container_name: samba
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - USERID=1000
+      - GROUPID=1000
+      - PERMISSIONS=true
+      - TZ:Europe/Berlin
+    stdin_open: true
+    tty: true
+    tmpfs:
+      - /tmp
+    volumes:
+      - /sync:/share
+    ports:
+      - "137:137/udp"
+      - "138:138/udp"
+      - "139:139/tcp"
+      - "445:445/tcp"
+    restart: unless-stopped
+    networks:
+      - default
+    command: "-s 'sync;/share;yes;no;yes;svollmer' -u ${SAMBA_USER} -p"
+
+  cloudflare-ddns:
+    environment:
+      - API_KEY=${DDNS_API_KEY}
+      - ZONE=fallenlab.com
+      - SUBDOMAIN=ddns
+      - DELETE_ON_STOP=true
+    image: oznu/cloudflare-ddns
+
+  heimdall:
+    image: lscr.io/linuxserver/heimdall:latest
+    container_name: heimdall
+    hostname: heimdall #optional
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    volumes:
+      - /portainer/Files/AppData/Config/Heimdall:/config
+
+  jellyfin:
+    container_name: jellyfin
+    hostname: jellyfin
+    image: linuxserver/jellyfin:latest
+    #ports:
+    #- "8096:8096/tcp"
+    #- "8920:8920/udp"
+    environment:
+      - TZ=Europe/Berlin
+      - HOME=/root
+      - PGID=1000
+      - PUID=1000
+      - S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0
+      - S6_STAGE2_HOOK=/docker-mods
+      - S6_VERBOSITY=1
+      - VIRTUAL_ENV=/lsiopy
+      - TERM=xterm
+    volumes:
+      - /portainer/Files/AppData/Config/Jellyfin:/config
+      - /sync/asmr:/data/asmr
+      - /sync/Movies:/data/movies
+      - /sync/music:/data/music
+      - /sync/TV:/data/tvshows
+    cap_add:
+      - NET_ADMIN # Required if you are using Pi-hole as your DHCP server, else not needed
+    restart: unless-stopped
+
+  nginx-proxy-manager:
+    container_name: nginx-proxy-manager
+    image: 'jc21/nginx-proxy-manager:latest'
+    networks:
+      nginx_network:
+    restart: unless-stopped
+    ports:
+      # These ports are in format <host-port>:<container-port>
+      - '80:80' # Public HTTP Port
+      - '443:443' # Public HTTPS Port
+      - '81:81' # Admin Web Port
+      # Add any other Stream port you want to expose
+      # - '21:21' # FTP
+
+      # Uncomment the next line if you uncomment anything in the section
+    environment:
+      # Uncomment this if you want to change the location of
+      # the SQLite DB file within the container
+      DB_SQLITE_FILE: "/data/database.sqlite"
+
+    # Uncomment this if IPv6 is not enabled on your host
+      DISABLE_IPV6: 'true'
+
+    volumes:
+      - /portainer/Files/AppData/Config/nginx-proxy-manager/data:/data
+      - /portainer/Files/AppData/Config/nginx-proxy-manager/letsencrypt:/etc/letsencrypt
+      - /portainer/Files/AppData/Config/nginx-proxy-manager/config:/config/nginx/proxy-confs
+
+
+#TODO set up postgres / other db
+#TODO set up transmission + arr containers into this composer
+#TODO set up eclipse-mosquito so that it is also here like homeassistant
+networks:
+  default:
+    name: nginx_network
+    external: true
+
+volumes:
+  portainer_data:
+    external: true

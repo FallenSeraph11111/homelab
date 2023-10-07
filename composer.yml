@@ -1,5 +1,45 @@
 version: "3.7"
 services:
+  agent:
+    image: portainer/agent:2.19.0
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/docker/volumes:/var/lib/docker/volumes
+    networks:
+      - agent_network
+    deploy:
+      mode: global
+      placement:
+        constraints: [ node.platform.os == linux ]
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+  portainer:
+    image: portainer/portainer-ce:2.19.0
+    command: -H tcp://tasks.agent:9001 --tlsskipverify
+    depends_on:
+      - nginx-proxy-manager
+    ##ports:
+    #  - "9443:9443"
+    #  - "9000:9000"
+    #  - "8000:8000"
+    volumes:
+      - portainer_data:/data
+    networks:
+      - agent_network
+      - nginx
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints: [ node.role == manager ]
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
 
   speedtest-tracker:
     image: henrywhitaker3/speedtest-tracker:dev-arm
@@ -17,7 +57,10 @@ services:
       - OOKLA_EULA_GDPR=true
     volumes:
       - /portainer/Files/AppData/Config/speedtest-tracker:/config
-
+    deploy:
+      mode: replicated
+      replicas: 1
+      endpoint_mode: dnsrr
   syncthing:
     image: lscr.io/linuxserver/syncthing:latest
     container_name: syncthing
@@ -34,6 +77,9 @@ services:
     volumes:
       - /portainer/Files/AppData/Config:/config
       - /sync:/var/syncthing
+    deploy:
+      mode: global
+      endpoint_mode: dnsrr
     #ports:
       #- 22000:22000/tcp
       #- 22000:22000/udp
@@ -49,6 +95,27 @@ services:
       - /portainer/Files/AppData/Config/homeassistant:/config
     network_mode: host
     image: 'ghcr.io/home-assistant/home-assistant:stable'
+
+  esphome:
+    hostname: esphome
+    container_name: esphome
+    image: esphome/esphome
+    environment:
+      - TZ=Europe/Berlin
+    volumes:
+      - /portainer/Files/AppData/Config/esphome:/config
+#      - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
+    privileged: true
+    networks:
+      - nginx
+
+  mdns-repeater:
+    image: monstrenyatko/mdns-repeater
+    container_name: mdns-repeater
+    restart: unless-stopped
+    command: mdns-repeater-app -f ${MDNS_INTERFACE} ${MDNS_ADAPTER} #eg mdns-repeater-app -f eth0 br-abcdefghijk
+    network_mode: "host"
 
   pihole:
     container_name: pihole
@@ -93,22 +160,6 @@ services:
       - nginx
     ports:
       - "8083:8083"
-  portainer:
-    container_name: portainer
-    depends_on:
-      - nginx-proxy-manager
-    image: portainer/portainer-ce:latest
-    restart: unless-stopped
-    networks:
-      - nginx
-    # ports:
-    #   - "9000:9000"
-    security_opt:
-      - no-new-privileges:true
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - portainer_data:/data
-
 #  samba:
 #    image: dperson/samba:latest
 #    container_name: samba

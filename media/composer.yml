@@ -3,8 +3,6 @@ services:
   calibre-web:
     image: ghcr.io/linuxserver/calibre-web
     container_name: calibre-web
-    depends_on:
-      - nginx-proxy-manager
     environment:
       - PUID=1000
       - PGID=1000
@@ -24,13 +22,10 @@ services:
     ports:
       - "8083:8083"
 
-
   heimdall:
     image: lscr.io/linuxserver/heimdall:latest
     container_name: heimdall
     hostname: heimdall #optional
-    depends_on:
-      - nginx-proxy-manager
     environment:
       - PUID=1000
       - PGID=1000
@@ -45,8 +40,6 @@ services:
     container_name: jellyfin
     hostname: jellyfin
     image: linuxserver/jellyfin:latest
-    depends_on:
-      - nginx-proxy-manager
     networks:
       - nginx
     #ports:

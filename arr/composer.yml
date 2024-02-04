@@ -1,0 +1,180 @@
+version: "3.7"
+services:
+  transmission:
+    container_name: transmission-openvpn-latest
+    hostname: transmission-openvpn-latest
+    networks:
+      - nginx
+    image: haugene/transmission-openvpn:latest
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+    environment:
+      PUID: 1000
+      PGID: 1000
+      OPENVPN_PROVIDER: custom
+      OPENVPN_CONFIG: default
+      OPENVPN_USERNAME: ${OPENVPN_USERNAME}
+      OPENVPN_PASSWORD: ${OPENVPN_PASSWORD}
+      #LOCAL_NETWORK: 192.168.2.0/24 #not necessary because nginx reverse proxy
+      TRANSMISSION_WATCH_DIR_ENABLED: true
+      PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      OPENVPN_OPTS:
+      GLOBAL_APPLY_PERMISSIONS: true
+      TRANSMISSION_RPC_PORT: 9091
+      TRANSMISSION_RPC_USERNAME:
+      TRANSMISSION_RPC_PASSWORD:
+      TRANSMISSION_DOWNLOAD_DIR: /data/completed
+      TRANSMISSION_INCOMPLETE_DIR: /data/incomplete
+      TRANSMISSION_WATCH_DIR: /data/watch
+      CREATE_TUN_DEVICE: true
+      ENABLE_UFW: false
+      UFW_ALLOW_GW_NET: false
+      UFW_EXTRA_PORTS:
+      UFW_DISABLE_IPTABLES_REJECT: false
+      PEER_DNS: true
+      PEER_DNS_PIN_ROUTES: true
+      DROP_DEFAULT_ROUTE:
+      WEBPROXY_ENABLED: false
+      #WEBPROXY_PORT: 8118
+      #WEBPROXY_USERNAME:
+      #WEBPROXY_PASSWORD:
+      LOG_TO_STDOUT: false
+      HEALTH_CHECK_HOST: google.com
+      SELFHEAL: true
+      REVISION: 1103172c3288b7de681e2fb7f1378314f17f66cf
+    command: "'dumb-init' '/etc/openvpn/start.sh'"
+    volumes:
+      - /portainer/Files/AppData/Config/transmission-openvpn:/config
+      - /portainer/Downloads:/data
+      - /etc/localtime:/etc/localtime
+      - /var/vpn/protonvpn:/etc/openvpn/custom
+
+  bazarr:
+    depends_on:
+      - transmission
+    container_name: bazarr
+    hostname: bazarr
+    networks:
+      - nginx
+    image: linuxserver/bazarr:latest
+    restart: unless-stopped
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: Europe/Berlin
+      PATH: /lsiopy/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      PS1: $(whoami)@$(hostname):$(pwd)\$
+      HOME: /root
+      TERM: xterm
+      S6_CMD_WAIT_FOR_SERVICES_MAXTIME: 0
+      S6_VERBOSITY: 1
+      S6_STAGE2_HOOK: /docker-mods
+      VIRTUAL_ENV: /lsiopy
+      LSIO_FIRST_PARTY: true
+    entrypoint: /init
+    volumes:
+      - /portainer/Files/AppData/Config/Bazarr:/config
+      - /sync/Movies:/movies
+      - /sync/TV:/tv
+
+  radarr:
+    depends_on:
+      - transmission
+    container_name: radarr
+    hostname: radarr
+    networks:
+      - nginx
+    image: linuxserver/radarr:latest
+    restart: unless-stopped
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: Europe/Berlin
+      PATH: /lsiopy/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      PS1: $(whoami)@$(hostname):$(pwd)\$
+      HOME: /root
+      TERM: xterm
+      S6_CMD_WAIT_FOR_SERVICES_MAXTIME: 0
+      S6_VERBOSITY: 1
+      S6_STAGE2_HOOK: /docker-mods
+      VIRTUAL_ENV: /lsiopy
+      LSIO_FIRST_PARTY: true
+      XDG_CONFIG_HOME: /config/xdg
+    entrypoint: /init
+    volumes:
+      - /portainer/Files/AppData/Config/Radarr:/config
+      - /portainer/Downloads:/data
+      - /portainer/Downloads:/downloads
+      - /sync/Movies:/movies
+      - /sync/TV:/tv
+
+  jackett:
+    container_name: jackett
+    hostname: jackett
+    networks:
+      - nginx
+    image: linuxserver/jackett:latest
+    restart: unless-stopped
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: Europe/Berlin
+      PATH: /lsiopy/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      PS1: $(whoami)@$(hostname):$(pwd)\$
+      HOME: /root
+      TERM: xterm
+      S6_CMD_WAIT_FOR_SERVICES_MAXTIME: 0
+      S6_VERBOSITY: 1
+      S6_STAGE2_HOOK: /docker-mods
+      VIRTUAL_ENV: /lsiopy
+      LSIO_FIRST_PARTY: true
+      XDG_CONFIG_HOME: /config
+      XDG_DATA_HOME: /config
+    entrypoint: /init
+    volumes:
+      - /portainer/Files/AppData/Config/Jackett:/config
+      - /portainer/Downloads:/data
+      - /portainer/Downloads:/downloads
+
+  sonarr:
+    depends_on:
+      - transmission
+    container_name: sonarr
+    hostname: sonarr
+    networks:
+      - nginx
+    image: linuxserver/sonarr:latest
+    restart: unless-stopped
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: Europe/Berlin
+      PATH: /lsiopy/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      PS1: $(whoami)@$(hostname):$(pwd)\$
+      HOME: /root
+      TERM: xterm
+      S6_CMD_WAIT_FOR_SERVICES_MAXTIME: 0
+      S6_VERBOSITY: 1
+      S6_STAGE2_HOOK: /docker-mods
+      VIRTUAL_ENV: /lsiopy
+      LSIO_FIRST_PARTY: true
+      XDG_CONFIG_HOME: /config/xdg
+      SONARR_BRANCH: main
+    entrypoint: /init
+    volumes:
+      - /portainer/Files/AppData/Config/Sonarr:/config
+      - /portainer/Downloads:/data
+      - /portainer/Downloads:/downloads
+      - /sync/Movies:/movies
+      - /sync/TV:/tv
+      - /dev/rtc:/dev/rtc
+
+networks:
+  nginx:
+    name: nginx_network
+    enable_ipv6: true
+    external: true
+    ipam:
+      config:
+        - subnet: fd12:3456:789a:1::/64

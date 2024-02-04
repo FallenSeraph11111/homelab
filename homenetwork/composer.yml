@@ -1,0 +1,147 @@
+version: "3.7"
+services:
+  syncthing:
+    image: lscr.io/linuxserver/syncthing:latest
+    container_name: syncthing
+    restart: unless-stopped
+    hostname: syncthing #optional
+    depends_on:
+      - nginx-proxy-manager
+    networks:
+      - nginx
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    volumes:
+      - /portainer/Files/AppData/Config:/config
+      - /sync:/var/syncthing
+    deploy:
+      mode: global
+      endpoint_mode: dnsrr
+      #ports:
+      #- 22000:22000/tcp
+      #- 22000:22000/udp
+      #- 21027:21027/udp
+  home-assistant:
+    container_name: homeassistant
+    privileged: true
+    restart: unless-stopped
+    environment:
+      - TZ=Europe/Berlin
+    volumes:
+      - /portainer/Files/AppData/Config/homeassistant:/config
+    network_mode: host
+    image: 'ghcr.io/home-assistant/home-assistant:stable'
+  esphome:
+    hostname: esphome
+    container_name: esphome
+    image: esphome/esphome
+    environment:
+      - TZ=Europe/Berlin
+      - ESPHOME_DASHBOARD_USE_PING=true
+    ports:
+      - "6052:6052/tcp"
+    volumes:
+      - /portainer/Files/AppData/Config/esphome:/config
+      - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
+    privileged: true
+    network_mode: host
+  mdns-repeater:
+    image: monstrenyatko/mdns-repeater
+    container_name: mdns-repeater
+    restart: unless-stopped
+    command: mdns-repeater-app -f ${MDNS_INTERFACE} ${MDNS_ADAPTER} #eg mdns-repeater-app -f eth0 br-abcdefghijk
+    network_mode: "host"
+  pihole:
+    container_name: pihole
+    image: cbcrowe/pihole-unbound:latest
+    depends_on:
+      - nginx-proxy-manager
+    networks:
+      - nginx
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      #- "67:67/udp" # Only required if you are using Pi-hole as your DHCP server
+    environment:
+      TZ: 'Europe/Berlin'
+    volumes:
+      - /portainer/Files/AppData/Config/PiHole-Unbound/DNS:/etc/dnsmasq.d'
+      - /portainer/Files/AppData/Config/PiHole-Unbound:/etc/pihole
+    cap_add:
+      - NET_ADMIN # Required if you are using Pi-hole as your DHCP server, else not needed
+    restart: unless-stopped
+  cloudflare-ddns:
+    hostname: ddns
+    environment:
+      - API_KEY=${DDNS_API_KEY}
+      - ZONE=fallenlab.com
+      - SUBDOMAIN=ddns
+      - DELETE_ON_STOP=true
+      - RRTYPE=A
+    image: oznu/cloudflare-ddns
+    restart: unless-stopped
+    networks:
+      - nginx
+  nginx-proxy-manager:
+    container_name: nginx-proxy-manager
+    image: 'jc21/nginx-proxy-manager:latest'
+    networks:
+      - nginx
+    restart: unless-stopped
+    ports:
+      # These ports are in format <host-port>:<container-port>
+      - '80:80' # Public HTTP Port
+      - '443:443' # Public HTTPS Port
+      - '81:81' # Admin Web Port
+      # Add any other Stream port you want to expose
+      # - '21:21' # FTP
+
+      # Uncomment the next line if you uncomment anything in the section
+    environment:
+      # Uncomment this if you want to change the location of
+      # the SQLite DB file within the container
+      DB_SQLITE_FILE: "/data/database.sqlite"
+
+    # Uncomment this if IPv6 is not enabled on your host
+    #  DISABLE_IPV6: 'false'
+
+    volumes:
+      - /portainer/Files/AppData/Config/nginx-proxy-manager/data:/data
+      - /portainer/Files/AppData/Config/nginx-proxy-manager/letsencrypt:/etc/letsencrypt
+      - /portainer/Files/AppData/Config/nginx-proxy-manager/config:/config/nginx/proxy-confs
+
+  samba:
+    image: dperson/samba:latest
+    container_name: samba
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - USERID=1000
+      - GROUPID=1000
+      - PERMISSIONS=true
+      - TZ:Europe/Berlin
+    stdin_open: true
+    tty: true
+    tmpfs:
+      - /tmp
+    volumes:
+      - /sync:/share
+    ports:
+      - "137:137/udp"
+      - "138:138/udp"
+      - "139:139/tcp"
+      - "445:445/tcp"
+    restart: unless-stopped
+    command: "-s 'sync;/share;yes;no;yes;svollmer' -u ${SAMBA_USER} -p"
+
+networks:
+  nginx:
+    name: nginx_network
+    enable_ipv6: true
+    external: true
+    ipam:
+      config:
+        - subnet: fd12:3456:789a:1::/64

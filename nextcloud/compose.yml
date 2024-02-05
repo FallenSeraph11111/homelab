@@ -26,9 +26,9 @@ services:
     image: nextcloud:apache
     restart: always
     volumes:
-      - /sync:/var/www/html/data
+      - /nextcloud:/var/www/html/data
       - nextcloud:/var/www/html
-      #- /sync:/sync
+      - /sync:/sync
     environment:
       - VIRTUAL_HOST=${HOSTNAME}
       - LETSENCRYPT_HOST=${HOSTNAME}

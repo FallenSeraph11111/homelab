@@ -8,7 +8,7 @@ services:
     volumes:
       - db:/var/lib/mysql
     environment:
-      - MARIADB_RANDOM_ROOT_PASSWORD=yes
+      - MARIADB_ROOT_PASSWORD=${SQLROOTPASS}
       - MYSQL_PASSWORD=${SQLPASS}
       - MYSQL_DATABASE=nextcloud
       - MYSQL_USER=nextcloud

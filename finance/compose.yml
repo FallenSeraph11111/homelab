@@ -45,7 +45,7 @@ volumes:
 
 networks:
   nginx:
-    name: nginx-network
+    name: nginx_network
     external: true
   back-tier:
   

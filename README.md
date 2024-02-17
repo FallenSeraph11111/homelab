@@ -7,3 +7,8 @@ the rest of the compose files can be exeuted seperatly tho the homenetwork does 
 
 
 This does not use docker swarm for the deployment
+
+
+
+finance/compose.yml uses a adjusted version of https://raw.githubusercontent.com/firefly-iii/firefly-iii/main/.env.example as the .env file
+it is also based on https://raw.githubusercontent.com/firefly-iii/docker/main/docker-compose.yml

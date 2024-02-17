@@ -2,7 +2,7 @@ version: '3.3'
 
 services:
   firefly:
-    name: firefly
+    container_name: firefly
     image: fireflyiii/core:latest
     restart: unless-stopped
     volumes:
@@ -15,7 +15,7 @@ services:
       - nginx
   db:
     image: mariadb
-    name: fireflydb
+    container_name: fireflydb
     hostname: fireflydb
     restart: unless-stopped
     environment:
@@ -35,7 +35,6 @@ services:
     #
     image: alpine
     restart: always
-    name: firefly_cron
     command: sh -c "echo \"0 3 * * * wget -qO- http://firefly:8080/api/v1/cron/${STATIC_CRON_TOKEN}\" | crontab - && crond -f -L /dev/stdout"
     networks:
       - back-tier

@@ -8,7 +8,7 @@ services:
     volumes:
       - firefly_iii_upload:/var/www/html/storage/upload
     env_file: 
-      - stack.env
+      - ../stack.env
     depends_on:
       - db
     networks:

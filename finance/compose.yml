@@ -7,7 +7,8 @@ services:
     restart: unless-stopped
     volumes:
       - firefly_iii_upload:/var/www/html/storage/upload
-    env_file: stack.env
+    env_file: 
+      - stack.env
     depends_on:
       - db
     networks:

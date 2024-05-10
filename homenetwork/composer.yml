@@ -163,10 +163,6 @@ services:
       plugins.security.disabled: true
       bootstrap.memory_lock: true
       OPENSEARCH_JAVA_OPTS: ${OPENSEARCH_JAVA_OPTS}
-    healthcheck:
-      interval: 10s
-      retries: 80
-      test: curl --write-out 'HTTP %{http_code}' --fail --silent --output /dev/null http://localhost:9200/
     restart: unless-stopped
     ulimits:
       memlock:
@@ -186,10 +182,8 @@ services:
   fusionauth:
     image: fusionauth/fusionauth-app:latest
     depends_on:
-      db:
-        condition: service_healthy
-      search:
-        condition: service_healthy
+      - db
+      - search
     environment:
       DATABASE_URL: jdbc:postgresql://db:5432/fusionauth
       DATABASE_ROOT_USERNAME: ${POSTGRES_USER}

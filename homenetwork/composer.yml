@@ -208,7 +208,7 @@ services:
       - "9011:9011"
     restart: unless-stopped
     volumes:
-      - /portainer/Files/AppData/Config/fusionauth/usr/local/fusionauth/config
+      - /portainer/Files/AppData/Config/fusionauth:/usr/local/fusionauth/config
 
 volumes:
   db_data:

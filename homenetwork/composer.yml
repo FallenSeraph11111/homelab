@@ -221,8 +221,4 @@ networks:
     driver: bridge
   nginx:
     name: nginx_network
-    enable_ipv6: true
     external: true
-    ipam:
-      config:
-        - subnet: fd12:3456:789a:1::/64

@@ -1,6 +1,5 @@
 version: "3.7"
 services:
-  services:
   server:
     image: codeberg.org/forgejo/forgejo:1.21
     container_name: forgejo
@@ -19,8 +18,4 @@ services:
 networks:
   nginx:
     name: nginx_network
-    enable_ipv6: true
     external: true
-    ipam:
-      config:
-        - subnet: fd12:3456:789a:1::/64

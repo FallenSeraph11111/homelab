@@ -13,10 +13,10 @@ services:
       PUID: 1000
       PGID: 1000
       OPENVPN_PROVIDER: custom
-      OPENVPN_CONFIG: default
+      OPENVPN_CONFIG: ${OPENVPN_CONFIG}
       OPENVPN_USERNAME: ${OPENVPN_USERNAME}
       OPENVPN_PASSWORD: ${OPENVPN_PASSWORD}
-      #LOCAL_NETWORK: 192.168.2.0/24 #not necessary because nginx reverse proxy
+      LOCAL_NETWORK: 192.168.2.0/24 #not necessary because nginx reverse proxy
       TRANSMISSION_WATCH_DIR_ENABLED: true
       PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       OPENVPN_OPTS:

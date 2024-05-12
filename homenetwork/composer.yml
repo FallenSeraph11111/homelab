@@ -212,9 +212,22 @@ services:
     volumes:
       - /portainer/Files/AppData/Config/fusionauth:/usr/local/fusionauth/config
 
+  protonmail-bridge:
+    image: shenxn/protonmail-bridge
+    ports:
+      - 1025:25/tcp
+      - 1143:143/tcp
+    restart: unless-stopped
+    networks:
+      - mail
+    volumes:
+      - protonmail:/root
+
 volumes:
   db_data:
   search_data:
+  protonmail:
+    name: protonmail
 
 networks:
   db_net:
@@ -224,4 +237,7 @@ networks:
     driver: bridge
   nginx:
     name: nginx_network
+    external: true
+  mail:
+    name: mail_net
     external: true

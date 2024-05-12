@@ -1,20 +1,6 @@
 version: '3.7'
 
 services:
-  db:
-    image: mariadb:10.6
-    restart: always
-    command: --transaction-isolation=READ-COMMITTED --log-bin=binlog --binlog-format=ROW
-    volumes:
-      - db:/var/lib/mysql
-    environment:
-      - MARIADB_ALLOW_EMPTY_ROOT_PASSWORD=1
-      - MYSQL_PASSWORD=${SQLPASS}
-      - MYSQL_DATABASE=nextcloud
-      - MYSQL_USER=nextcloud
-    networks:
-      - nextcloud
-
   redis:
     image: redis:alpine
     restart: always
@@ -26,22 +12,17 @@ services:
     image: nextcloud:apache
     restart: always
     volumes:
-      - /nextcloud:/var/www/html/data
-      - nextcloud:/var/www/html
+      - /portainer/Files/AppData/Config/nextcloud:/var/www/html
       - /sync:/sync
     environment:
       - VIRTUAL_HOST=${HOSTNAME}
       - LETSENCRYPT_HOST=${HOSTNAME}
       - LETSENCRYPT_EMAIL=${EMAIL}
-      - MYSQL_PASSWORD=$SQLPASS}
-      - MYSQL_DATABASE=nextcloud
-      - MYSQL_USER=nextcloud
-      - MYSQL_HOST=db
       - REDIS_HOST=redis
     depends_on:
-      - db
       - redis
     networks:
+      - db_net
       - nginx
       - nextcloud
 
@@ -49,23 +30,16 @@ services:
     image: nextcloud:apache
     restart: always
     volumes:
-      - nextcloud:/var/www/html:z
+      - /portainer/Files/AppData/Config/nextcloud:/var/www/html:z
     entrypoint: /cron.sh
     depends_on:
-      - db
       - redis
-
-volumes:
-  nextcloud:
-  db:
-  html:
 
 networks:
   nginx:
     name: nginx_network
-    enable_ipv6: true
     external: true
-    ipam:
-      config:
-        - subnet: fd12:3456:789a:1::/64
   nextcloud:
+  db_net:
+    name: db_net
+    external: true

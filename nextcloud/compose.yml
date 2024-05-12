@@ -18,6 +18,7 @@ services:
       - VIRTUAL_HOST=${HOSTNAME}
       - LETSENCRYPT_HOST=${HOSTNAME}
       - LETSENCRYPT_EMAIL=${EMAIL}
+      - TRUSTED_PROXIES=nginx-proxy-manager
       - REDIS_HOST=redis
       - POSTGRES_DB=nextcloud
       - POSTGRES_USER=nextcloud

@@ -216,7 +216,8 @@ volumes:
 
 networks:
   db_net:
-    driver: bridge
+    name: db_net
+    external: true
   search_net:
     driver: bridge
   nginx:

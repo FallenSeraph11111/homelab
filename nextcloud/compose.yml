@@ -19,6 +19,10 @@ services:
       - LETSENCRYPT_HOST=${HOSTNAME}
       - LETSENCRYPT_EMAIL=${EMAIL}
       - REDIS_HOST=redis
+      - POSTGRES_DB=nextcloud
+      - POSTGRES_USER=nextcloud
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_HOST=db
     depends_on:
       - redis
     networks:

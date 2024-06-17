@@ -68,6 +68,8 @@ services:
       image: deluan/navidrome:latest
       user: 1000:1000 # should be owner of volumes
       restart: unless-stopped
+      ports:
+        - "4533:4533"
       environment:
         # Optional: put your config options customization here. Examples:
         ND_SCANSCHEDULE: 1h

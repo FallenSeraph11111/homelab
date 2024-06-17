@@ -64,6 +64,20 @@ services:
       - NET_ADMIN # Required if you are using Pi-hole as your DHCP server, else not needed
     restart: unless-stopped
 
+  navidrome:
+      image: deluan/navidrome:latest
+      user: 1000:1000 # should be owner of volumes
+      restart: unless-stopped
+      environment:
+        # Optional: put your config options customization here. Examples:
+        ND_SCANSCHEDULE: 1h
+        ND_LOGLEVEL: info
+        ND_SESSIONTIMEOUT: 24h
+        ND_BASEURL: "https://navidrome.fallenlab.com"
+        ND_PORT: 4533
+      volumes:
+        - "/portainer/Files/AppData/Config/navidrome:/data"
+        - "/sync/music:/music:ro"
 networks:
   nginx:
     name: nginx_network

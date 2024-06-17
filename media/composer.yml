@@ -75,6 +75,7 @@ services:
         ND_SESSIONTIMEOUT: 24h
         ND_BASEURL: ""
         ND_PORT: 4533
+        ND_REVERSEPROXYWHITELIST: 0.0.0.0/0
       volumes:
         - "/portainer/Files/AppData/Config/navidrome:/data"
         - "/sync/music:/music:ro"

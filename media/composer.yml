@@ -73,7 +73,7 @@ services:
         ND_SCANSCHEDULE: 1h
         ND_LOGLEVEL: info
         ND_SESSIONTIMEOUT: 24h
-        ND_BASEURL: ""
+        ND_BASEURL: "https://navidrome.fallenlab.com"
         ND_PORT: 4533
       volumes:
         - "/portainer/Files/AppData/Config/navidrome:/data"

@@ -213,7 +213,7 @@ services:
       - /portainer/Files/AppData/Config/fusionauth:/usr/local/fusionauth/config
 
   protonmail-bridge:
-    image: shenxn/protonmail-bridge
+    image: shenxn/protonmail-bridge:2.4.8-build
     ports:
       - 1025:25/tcp
       - 1143:143/tcp

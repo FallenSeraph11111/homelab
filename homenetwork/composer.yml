@@ -25,6 +25,7 @@ services:
       #- 21027:21027/udp
   home-assistant:
     container_name: homeassistant
+    platform: linux/arm64
     privileged: true
     restart: unless-stopped
     environment:
